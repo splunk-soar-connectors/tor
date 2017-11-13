@@ -1,7 +1,7 @@
 {
     "appid": "2595f157-1e11-4287-b13a-655e553e9a8d",
     "name": "Tor",
-    "description": "Implements `lookup ip` to determine if an IP is an exit node",
+    "description": "This app will check if an IP address is a Tor exit node",
     "type": "information",
     "product_vendor": "Tor",
     "logo": "tor.png",
