@@ -32,7 +32,7 @@
             "action": "lookup ip",
             "identifier": "lookup_ip",
             "description": "Check if IP is a Tor exit node",
-            "verbose": "This will download a list of current exit nodes, and will use that to determine if an IP is an exit node. This list will then redownloaded every 30 minutes.",
+            "verbose": "This will download a list of current exit nodes, and will use that to determine if an IP is an exit node. During each action run, if the current list is found to be downloaded over 30 minutes ago, it will download an updated version.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
