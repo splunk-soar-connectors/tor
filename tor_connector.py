@@ -18,7 +18,6 @@ from phantom.base_connector import BaseConnector
 from phantom.action_result import ActionResult
 
 # Usage of the consts file is recommended
-import os
 import time
 import json
 import requests
@@ -38,70 +37,57 @@ class TordnselConnector(BaseConnector):
         self._state = None
 
     def _parse_exit_list(self, action_result, exit_list):
-        ip_set = set()
+        ip_list = []
         for line in exit_list.splitlines():
             if line.startswith('ExitAddress'):
                 try:
-                    ip_set.add(line.split()[1])
+                    ip_list.append(line.split()[1])
                 except:
                     pass
-        return phantom.APP_SUCCESS, ip_set
+        return phantom.APP_SUCCESS, ip_list
 
-    def _download_save_list(self, action_result, exit_list_path):
+    def _download_save_list(self, action_result, cur_time):
         self.save_progress("Updating exit node list")
         r = requests.get('https://check.torproject.org/exit-addresses')
         if r.status_code != 200:
             return action_result.set_status(phantom.APP_ERROR, "Error from server: {}".format(r.text))
-        try:
-            fp = open(exit_list_path, 'w')
-            fp.write(r.text)
-            fp.close()
-        except Exception as e:
-            return action_result.set_status(phantom.APP_ERROR, "Error writing to file", e)
+        exit_lits = r.text
+        ret_val, ip_list = self._parse_exit_list(action_result, exit_lits)
+        if phantom.is_fail(ret_val):
+            return ret_val
+        self._state['ip_list'] = ip_list
+        self._state['last_updated'] = cur_time
         return phantom.APP_SUCCESS
 
     def _init_list(self, action_result):
         download_list_interval = 30
-        exit_list_path = '{}/tor_exit_list.txt'.format(os.path.dirname(os.path.abspath(__file__)))
         cur_time = int(time.time())
         last_updated = self._state.get('last_updated')
-        is_list = os.path.isfile(exit_list_path)
+        is_list = True if self._state.get('ip_list') else False
         if not last_updated and is_list:
             # Someone has either created a new asset or touched the state dir
             self._state['last_updated'] = cur_time
         elif not last_updated and not is_list:
             # Probably first run of the app
-            ret_val = self._download_save_list(action_result, exit_list_path)
+            ret_val = self._download_save_list(action_result, cur_time)
             if phantom.is_fail(ret_val):
                 return ret_val, None
-            self._state['last_updated'] = cur_time
         elif last_updated and not is_list:
             # They have actively muddled with the app directory at this point
-            ret_val = self._download_save_list(action_result, exit_list_path)
+            ret_val = self._download_save_list(action_result, cur_time)
             if phantom.is_fail(ret_val):
                 return ret_val, None
-            self._state['last_updated'] = cur_time
         else:
             # See if we should update the list
             diff_seconds = cur_time - last_updated  # Time since last update
             diff_minutes = diff_seconds / 60
             if diff_minutes > download_list_interval:
                 # Update list
-                ret_val = self._download_save_list(action_result, exit_list_path)
+                ret_val = self._download_save_list(action_result, cur_time)
                 if phantom.is_fail(ret_val):
                     return ret_val, None
-                self._state['last_updated'] = cur_time
 
-        try:
-            fp = open(exit_list_path, 'r')
-            exit_list = fp.read()
-            fp.close()
-        except Exception as e:
-            return action_result.set_status(phantom.APP_ERROR, "Error reading from file", e), None
-
-        ret_val, ip_set = self._parse_exit_list(action_result, exit_list)
-        if phantom.is_fail(ret_val):
-            return ret_val, None
+        ip_set = set(self._state['ip_list'])
         return phantom.APP_SUCCESS, ip_set
 
     def _handle_test_connectivity(self, param):
