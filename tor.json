@@ -1,7 +1,7 @@
 {
     "appid": "2595f157-1e11-4287-b13a-655e553e9a8d",
     "name": "Tor",
-    "description": "This app will check if an IP address is a Tor exit node",
+    "description": "This app implements investigative actions to query info about the Tor network",
     "type": "information",
     "product_vendor": "Tor",
     "logo": "tor.png",
@@ -20,8 +20,7 @@
         {
             "action": "test connectivity",
             "identifier": "test_connectivity",
-            "description": "Validate the asset configuration for connectivity using supplied configuration",
-            "verbose": "",
+            "description": "Validates the connection to the Tor Project website",
             "type": "test",
             "read_only": true,
             "parameters": {},
