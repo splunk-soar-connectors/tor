@@ -88,8 +88,11 @@
                     "column_order": 1
                 },
                 {
-                    "data_path": "action_result.summary",
-                    "data_type": "boolean"
+                    "data_path": "action_result.summary.num_exit_nodes",
+                    "data_type": "numeric",
+                    "example_values": [
+                        2
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects",
