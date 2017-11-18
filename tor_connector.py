@@ -48,7 +48,10 @@ class TordnselConnector(BaseConnector):
 
     def _download_save_list(self, action_result, cur_time):
         self.save_progress("Updating exit node list")
-        r = requests.get('https://check.torproject.org/exit-addresses')
+        try:
+            r = requests.get('https://check.torproject.org/exit-addresses')
+        except Exception as e:
+            return action_result.set_status(phantom.APP_ERROR, "Error retrieving exit node list", e)
         if r.status_code != 200:
             return action_result.set_status(phantom.APP_ERROR, "Error from server: {}".format(r.text))
         exit_lits = r.text
@@ -59,12 +62,16 @@ class TordnselConnector(BaseConnector):
         self._state['last_updated'] = cur_time
         return phantom.APP_SUCCESS
 
-    def _init_list(self, action_result):
+    def _init_list(self, action_result, force_update=False):
         download_list_interval = 30
         cur_time = int(time.time())
         last_updated = self._state.get('last_updated')
         is_list = True if self._state.get('ip_list') else False
-        if not last_updated and is_list:
+        if force_update:
+            ret_val = self._download_save_list(action_result, cur_time)
+            if phantom.is_fail(ret_val):
+                return ret_val, None
+        elif not last_updated and is_list:
             # Someone has either created a new asset or touched the state dir
             self._state['last_updated'] = cur_time
         elif not last_updated and not is_list:
@@ -92,7 +99,7 @@ class TordnselConnector(BaseConnector):
 
     def _handle_test_connectivity(self, param):
         action_result = self.add_action_result(ActionResult(dict(param)))
-        ret_val, ip_set = self._init_list(action_result)
+        ret_val, ip_set = self._init_list(action_result, force_update=True)
         if phantom.is_fail(ret_val):
             self.save_progress("Test Connectivity Failed")
             return self.set_status(phantom.APP_ERROR)
@@ -101,6 +108,7 @@ class TordnselConnector(BaseConnector):
         return self.set_status(phantom.APP_SUCCESS)
 
     def _handle_lookup_ip(self, param):
+        num_exit_nodes = 0
         action_result = self.add_action_result(ActionResult(dict(param)))
         ret_val, ip_set = self._init_list(action_result)
         if phantom.is_fail(ret_val):
@@ -112,10 +120,12 @@ class TordnselConnector(BaseConnector):
             data['ip'] = ip
             if ip in ip_set:
                 data['is_exit_node'] = True
+                num_exit_nodes += 1
             else:
                 data['is_exit_node'] = False
             action_result.add_data(data)
 
+        action_result.update_summary({'num_exit_nodes': num_exit_nodes})
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully investigated IPs")
 
     def handle_action(self, param):
