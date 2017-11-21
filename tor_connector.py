@@ -103,7 +103,6 @@ class TordnselConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             self.save_progress("Test Connectivity Failed")
             return self.set_status(phantom.APP_ERROR)
-            return ret_val
         self.save_progress("Test Connectivity Passed")
         return self.set_status(phantom.APP_SUCCESS)
 
