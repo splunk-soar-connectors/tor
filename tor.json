@@ -4,7 +4,8 @@
     "description": "This app implements investigative actions to query info about the Tor network",
     "type": "information",
     "product_vendor": "Tor",
-    "logo": "tor.png",
+    "logo": "logo_tor.svg",
+    "logo_dark": "logo_tor_dark.svg",
     "product_name": "Tor",
     "product_version_regex": ".*",
     "publisher": "Phantom",
@@ -50,20 +51,16 @@
             },
             "output": [
                 {
+                    "data_path": "action_result.status",
+                    "data_type": "string"
+                },
+                {
                     "data_path": "action_result.parameter.ip",
                     "data_type": "string",
                     "contains": [
                         "ip",
                         "ip list"
                     ]
-                },
-                {
-                    "data_path": "action_result.status",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.ip",
@@ -93,6 +90,10 @@
                     "example_values": [
                         2
                     ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string"
                 },
                 {
                     "data_path": "summary.total_objects",
