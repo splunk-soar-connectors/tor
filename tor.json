@@ -9,9 +9,9 @@
     "product_name": "Tor",
     "product_version_regex": ".*",
     "publisher": "Phantom",
-    "license": "Copyright (c) 2017-2018 Splunk Inc.",
-    "app_version": "1.0.7",
-    "utctime_updated": "2018-12-07T01:22:35.000000Z",
+    "license": "Copyright (c) 2017-2019 Splunk Inc.",
+    "app_version": "1.0.5",
+    "utctime_updated": "2017-12-19T23:44:35.000000Z",
     "package_name": "phantom_tor",
     "main_module": "tor_connector.pyc",
     "min_phantom_version": "3.5.210",
@@ -42,8 +42,7 @@
                     "required": true,
                     "primary": true,
                     "contains": [
-                        "ip",
-                        "ip list"
+                        "ip"
                     ],
                     "allow_list": true,
                     "order": 0
