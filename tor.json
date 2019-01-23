@@ -53,8 +53,7 @@
                     "data_path": "action_result.parameter.ip",
                     "data_type": "string",
                     "contains": [
-                        "ip",
-                        "ip list"
+                        "ip"
                     ],
                     "example_values": [
                         "195.154.251.25"
