@@ -8,13 +8,13 @@
     "logo_dark": "logo_tor_dark.svg",
     "product_name": "Tor",
     "product_version_regex": ".*",
-    "publisher": "Phantom",
-    "license": "Copyright (c) 2017-2018 Splunk Inc.",
+    "publisher": "Splunk",
+    "license": "Copyright (c) 2017-2019 Splunk Inc.",
     "app_version": "1.0.7",
-    "utctime_updated": "2018-12-07T01:22:35.000000Z",
+    "utctime_updated": "2017-12-19T23:44:35.000000Z",
     "package_name": "phantom_tor",
     "main_module": "tor_connector.pyc",
-    "min_phantom_version": "3.5.210",
+    "min_phantom_version": "4.0.1068",
     "app_wizard_version": "1.0.0",
     "configuration": {},
     "actions": [
@@ -42,25 +42,13 @@
                     "required": true,
                     "primary": true,
                     "contains": [
-                        "ip",
-                        "ip list"
+                        "ip"
                     ],
                     "allow_list": true,
                     "order": 0
                 }
             },
             "output": [
-                {
-                    "data_path": "action_result.parameter.ip",
-                    "data_type": "string",
-                    "contains": [
-                        "ip",
-                        "ip list"
-                    ],
-                    "example_values": [
-                        "195.154.251.25"
-                    ]
-                },
                 {
                     "data_path": "action_result.status",
                     "data_type": "string",
@@ -69,10 +57,13 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.message",
+                    "data_path": "action_result.parameter.ip",
                     "data_type": "string",
+                    "contains": [
+                        "ip"
+                    ],
                     "example_values": [
-                        "Successfully investigated IPs"
+                        "195.154.251.25"
                     ]
                 },
                 {
@@ -104,6 +95,13 @@
                     "example_values": [
                         2,
                         1
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully investigated IPs"
                     ]
                 },
                 {
