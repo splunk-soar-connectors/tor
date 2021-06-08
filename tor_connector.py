@@ -120,6 +120,7 @@ class TordnselConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             self.save_progress("Test Connectivity Failed")
             return self.set_status(phantom.APP_ERROR)
+            return ret_val
         self.save_progress("Test Connectivity Passed")
         return self.set_status(phantom.APP_SUCCESS)
 
@@ -130,8 +131,9 @@ class TordnselConnector(BaseConnector):
         ret_val, ip_set = self._init_list(action_result, ips=ips)
         if phantom.is_fail(ret_val):
             return ret_val
-        for ip in ips.split(','):
-            ip = ip.strip()
+        labels = [x.strip() for x in ips.split(',')]
+        labels = list(filter(None, labels))
+        for ip in labels:
             data = {}
             data['ip'] = ip
             if ip in ip_set:
@@ -198,7 +200,7 @@ if __name__ == '__main__':
     if username and password:
         try:
             print("Accessing the Login page")
-            r = requests.get("https://127.0.0.1/login", verify=False)
+            r = requests.get("https://BaseConnector._get_phantom_base_url()/login", verify=False)
             csrftoken = r.cookies['csrftoken']
 
             data = dict()
@@ -208,10 +210,10 @@ if __name__ == '__main__':
 
             headers = dict()
             headers['Cookie'] = 'csrftoken=' + csrftoken
-            headers['Referer'] = 'https://127.0.0.1/login'
+            headers['Referer'] = 'https://BaseConnector._get_phantom_base_url()/login'
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post("https://127.0.0.1/login", verify=False, data=data, headers=headers)
+            r2 = requests.post("https://BaseConnector._get_phantom_base_url()/login", verify=False, data=data, headers=headers)
             session_id = r2.cookies['sessionid']
         except Exception as e:
             print("Unable to get session id from the platfrom. Error: " + str(e))
