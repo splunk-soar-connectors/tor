@@ -1,5 +1,5 @@
 # File: tor_connector.py
-# Copyright (c) 2017-2019 Splunk Inc.
+# Copyright (c) 2017-2021 Splunk Inc.
 #
 # SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
@@ -58,7 +58,6 @@ class TordnselConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, "Error from server: {}".format(r.text))
         exit_lits = r.text
         ret_val, ip_list_exit_address = self._parse_exit_list(action_result, exit_lits)
-
         ip_list_past_16_hours = []
         if ips:
             multiple_ips = ips.split(',')
@@ -121,6 +120,7 @@ class TordnselConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             self.save_progress("Test Connectivity Failed")
             return self.set_status(phantom.APP_ERROR)
+            return ret_val
         self.save_progress("Test Connectivity Passed")
         return self.set_status(phantom.APP_SUCCESS)
 
@@ -131,8 +131,9 @@ class TordnselConnector(BaseConnector):
         ret_val, ip_set = self._init_list(action_result, ips=ips)
         if phantom.is_fail(ret_val):
             return ret_val
-        for ip in ips.split(','):
-            ip = ip.strip()
+        ips = [x.strip() for x in ips.split(',')]
+        ips = list(filter(None, ips))
+        for ip in ips:
             data = {}
             data['ip'] = ip
             if ip in ip_set:
@@ -190,16 +191,17 @@ if __name__ == '__main__':
     username = args.username
     password = args.password
 
-    if (username is not None and password is None):
+    if username is not None and password is None:
+        login_url = BaseConnector._get_phantom_base_url() + "login"
 
         # User specified a username but not a password, so ask
         import getpass
         password = getpass.getpass("Password: ")
 
-    if (username and password):
+    if username and password:
         try:
-            print ("Accessing the Login page")
-            r = requests.get("https://127.0.0.1/login", verify=False)
+            print("Accessing the Login page")
+            r = requests.get(login_url, verify=False)
             csrftoken = r.cookies['csrftoken']
 
             data = dict()
@@ -209,17 +211,17 @@ if __name__ == '__main__':
 
             headers = dict()
             headers['Cookie'] = 'csrftoken=' + csrftoken
-            headers['Referer'] = 'https://127.0.0.1/login'
+            headers['Referer'] = login_url
 
-            print ("Logging into Platform to get the session id")
-            r2 = requests.post("https://127.0.0.1/login", verify=False, data=data, headers=headers)
+            print("Logging into Platform to get the session id")
+            r2 = requests.post(login_url, verify=False, data=data, headers=headers)
             session_id = r2.cookies['sessionid']
         except Exception as e:
-            print ("Unable to get session id from the platfrom. Error: " + str(e))
+            print("Unable to get session id from the platfrom. Error: " + str(e))
             exit(1)
 
-    if (len(sys.argv) < 2):
-        print "No test json specified as input"
+    if len(sys.argv) < 2:
+        print("No test json specified as input")
         exit(0)
 
     with open(sys.argv[1]) as f:
@@ -230,10 +232,10 @@ if __name__ == '__main__':
         connector = TordnselConnector()
         connector.print_progress_message = True
 
-        if (session_id is not None):
+        if session_id is not None:
             in_json['user_session_token'] = session_id
 
         ret_val = connector._handle_action(json.dumps(in_json), None)
-        print (json.dumps(json.loads(ret_val), indent=4))
+        print(json.dumps(json.loads(ret_val), indent=4))
 
     exit(0)
