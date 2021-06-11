@@ -8,13 +8,17 @@
     "logo_dark": "logo_tor_dark.svg",
     "product_name": "Tor",
     "product_version_regex": ".*",
-    "publisher": "Phantom",
-    "license": "Copyright (c) Phantom Cyber Corporation, 2017-2018",
-    "app_version": "1.0.6",
-    "utctime_updated": "2018-01-26T00:50:10.000000Z",
+    "publisher": "Splunk",
+    "license": "Copyright (c) 2017-2021 Splunk Inc.",
+    "app_version": "2.0.1",
+    "utctime_updated": "2021-06-11T09:22:41.000000Z",
     "package_name": "phantom_tor",
-    "main_module": "tor_connector.pyc",
-    "min_phantom_version": "3.0.251",
+    "main_module": "tor_connector.py",
+    "min_phantom_version": "4.9.39220",
+    "python_version": "3",
+    "latest_tested_versions": [
+        "On local cloud, tested on 1st June 2021"
+    ],
     "app_wizard_version": "1.0.0",
     "configuration": {},
     "actions": [
@@ -32,7 +36,7 @@
             "action": "lookup ip",
             "identifier": "lookup_ip",
             "description": "Check if IP is a Tor exit node",
-            "verbose": "This will download a list of current exit nodes, and will use that to determine if an IP is an exit node. During each action run, if the current list is found to be downloaded over 30 minutes ago, it will download an updated version.",
+            "verbose": "Download a list of current exit nodes to determine if an IP is an exit node. During each action run, if the current list is found to be downloaded over 30 minutes ago, it will download an updated version.",
             "type": "investigate",
             "read_only": true,
             "parameters": {
@@ -42,8 +46,7 @@
                     "required": true,
                     "primary": true,
                     "contains": [
-                        "ip",
-                        "ip list"
+                        "ip"
                     ],
                     "allow_list": true,
                     "order": 0
@@ -51,20 +54,22 @@
             },
             "output": [
                 {
-                    "data_path": "action_result.parameter.ip",
+                    "data_path": "action_result.status",
                     "data_type": "string",
-                    "contains": [
-                        "ip",
-                        "ip list"
+                    "example_values": [
+                        "success",
+                        "failed"
                     ]
                 },
                 {
-                    "data_path": "action_result.status",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.message",
-                    "data_type": "string"
+                    "data_path": "action_result.parameter.ip",
+                    "data_type": "string",
+                    "contains": [
+                        "ip"
+                    ],
+                    "example_values": [
+                        "195.154.251.25"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.ip",
@@ -73,7 +78,8 @@
                         "ip"
                     ],
                     "example_values": [
-                        "84.105.18.164"
+                        "84.105.18.164",
+                        "195.154.251.25"
                     ],
                     "column_name": "IP",
                     "column_order": 0
@@ -92,16 +98,30 @@
                     "data_path": "action_result.summary.num_exit_nodes",
                     "data_type": "numeric",
                     "example_values": [
-                        2
+                        2,
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully investigated IPs"
                     ]
                 },
                 {
                     "data_path": "summary.total_objects",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects_successful",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 }
             ],
             "render": {
