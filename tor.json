@@ -14,7 +14,7 @@
     "utctime_updated": "2022-01-07T21:45:32.000000Z",
     "package_name": "phantom_tor",
     "main_module": "tor_connector.py",
-    "min_phantom_version": "5.0.0",
+    "min_phantom_version": "5.1.0",
     "fips_compliant": true,
     "python_version": "3",
     "latest_tested_versions": [
