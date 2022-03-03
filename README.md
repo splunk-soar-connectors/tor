@@ -2,11 +2,11 @@
 # Tor
 
 Publisher: Splunk  
-Connector Version: 2\.0\.2  
+Connector Version: 2\.0\.3  
 Product Vendor: Tor  
 Product Name: Tor  
 Product Version Supported (regex): "\.\*"  
-Minimum Product Version: 4\.9\.39220  
+Minimum Product Version: 5\.1\.0  
 
 This app implements investigative actions to query info about the Tor network
 
