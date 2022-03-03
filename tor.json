@@ -9,12 +9,13 @@
     "product_name": "Tor",
     "product_version_regex": ".*",
     "publisher": "Splunk",
-    "license": "Copyright (c) 2017-2021 Splunk Inc.",
-    "app_version": "2.0.2",
-    "utctime_updated": "2021-06-11T22:27:11.000000Z",
+    "license": "Copyright (c) 2017-2022 Splunk Inc.",
+    "app_version": "2.0.3",
+    "utctime_updated": "2022-01-07T21:45:32.000000Z",
     "package_name": "phantom_tor",
     "main_module": "tor_connector.py",
-    "min_phantom_version": "4.9.39220",
+    "min_phantom_version": "5.1.0",
+    "fips_compliant": true,
     "python_version": "3",
     "latest_tested_versions": [
         "On local cloud, tested on 1st June 2021"
@@ -129,5 +130,29 @@
             },
             "versions": "EQ(*)"
         }
-    ]
+    ],
+    "pip_dependencies": {
+        "wheel": [
+            {
+                "module": "certifi",
+                "input_file": "wheels/certifi-2021.10.8-py2.py3-none-any.whl"
+            },
+            {
+                "module": "chardet",
+                "input_file": "wheels/chardet-3.0.4-py2.py3-none-any.whl"
+            },
+            {
+                "module": "idna",
+                "input_file": "wheels/idna-2.10-py2.py3-none-any.whl"
+            },
+            {
+                "module": "requests",
+                "input_file": "wheels/requests-2.25.0-py2.py3-none-any.whl"
+            },
+            {
+                "module": "urllib3",
+                "input_file": "wheels/urllib3-1.26.8-py2.py3-none-any.whl"
+            }
+        ]
+    }
 }
