@@ -1,6 +1,6 @@
 # File: tor_connector.py
 #
-# Copyright (c) 2017-2021 Splunk Inc.
+# Copyright (c) 2017-2022 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -138,6 +138,7 @@ class TordnselConnector(BaseConnector):
         return self.set_status(phantom.APP_SUCCESS)
 
     def _handle_lookup_ip(self, param):
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         num_exit_nodes = 0
         action_result = self.add_action_result(ActionResult(dict(param)))
         ips = param['ip']
@@ -146,6 +147,7 @@ class TordnselConnector(BaseConnector):
             return ret_val
         ips = [x.strip() for x in ips.split(',')]
         ips = list(filter(None, ips))
+        self.save_progress("")
         for ip in ips:
             data = {}
             data['ip'] = ip
