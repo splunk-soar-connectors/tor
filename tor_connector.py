@@ -1,6 +1,6 @@
 # File: tor_connector.py
 #
-# Copyright (c) 2017-2024 Splunk Inc.
+# Copyright (c) 2017-2025 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 #
 # Phantom App imports
 import json
+
 # Usage of the consts file is recommended
 import time
 
@@ -33,17 +34,15 @@ class RetVal(tuple):
 
 
 class TordnselConnector(BaseConnector):
-
     def __init__(self):
-
         # Call the BaseConnectors init first
-        super(TordnselConnector, self).__init__()
+        super().__init__()
         self._state = None
 
     def _parse_exit_list(self, action_result, exit_list):
         ip_list = []
         for line in exit_list.splitlines():
-            if line.startswith('ExitAddress'):
+            if line.startswith("ExitAddress"):
                 try:
                     ip_list.append(line.split()[1])
                 except:
@@ -53,7 +52,7 @@ class TordnselConnector(BaseConnector):
     def _parse_exit_list_past_16_hours(self, action_result, exit_list):
         ip_list = []
         for line in exit_list.splitlines():
-            if not line.startswith('#'):
+            if not line.startswith("#"):
                 try:
                     ip_list.append(line)
                 except:
@@ -63,21 +62,19 @@ class TordnselConnector(BaseConnector):
     def _download_save_list(self, action_result, cur_time, ips):
         self.save_progress("Updating exit node list")
         try:
-            r = requests.get('https://check.torproject.org/exit-addresses', timeout=DEFAULT_TIMEOUT)
+            r = requests.get("https://check.torproject.org/exit-addresses", timeout=DEFAULT_TIMEOUT)
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, "Error retrieving exit node list", e)
         if r.status_code != 200:
-            return action_result.set_status(phantom.APP_ERROR, "Error from server: {}".format(r.text))
+            return action_result.set_status(phantom.APP_ERROR, f"Error from server: {r.text}")
         exit_lits = r.text
         ret_val, ip_list_exit_address = self._parse_exit_list(action_result, exit_lits)
         ip_list_past_16_hours = []
         if ips:
-            multiple_ips = ips.split(',')
+            multiple_ips = ips.split(",")
             for ip in multiple_ips:
                 try:
-                    res = requests.get(
-                        'https://check.torproject.org/cgi-bin/TorBulkExitList.py?ip={}'.format(ip.strip()),
-                        timeout=DEFAULT_TIMEOUT)
+                    res = requests.get(f"https://check.torproject.org/cgi-bin/TorBulkExitList.py?ip={ip.strip()}", timeout=DEFAULT_TIMEOUT)
                 except Exception as e:
                     return action_result.set_status(phantom.APP_ERROR, "Error retrieving exit node list", e)
 
@@ -89,22 +86,22 @@ class TordnselConnector(BaseConnector):
             return ret_val
 
         ip_list = list(set(ip_list_exit_address + ip_list_past_16_hours))
-        self._state['ip_list'] = ip_list
-        self._state['last_updated'] = cur_time
+        self._state["ip_list"] = ip_list
+        self._state["last_updated"] = cur_time
         return phantom.APP_SUCCESS
 
     def _init_list(self, action_result, force_update=False, ips=None):
         download_list_interval = 30
         cur_time = int(time.time())
-        last_updated = self._state.get('last_updated')
-        is_list = True if self._state.get('ip_list') else False
+        last_updated = self._state.get("last_updated")
+        is_list = True if self._state.get("ip_list") else False
         if force_update:
             ret_val = self._download_save_list(action_result, cur_time, ips)
             if phantom.is_fail(ret_val):
                 return ret_val, None
         elif not last_updated and is_list:
             # Someone has either created a new asset or touched the state dir
-            self._state['last_updated'] = cur_time
+            self._state["last_updated"] = cur_time
         elif not last_updated and not is_list:
             # Probably first run of the app
             ret_val = self._download_save_list(action_result, cur_time, ips)
@@ -125,7 +122,7 @@ class TordnselConnector(BaseConnector):
                 if phantom.is_fail(ret_val):
                     return ret_val, None
 
-        ip_set = set(self._state['ip_list'])
+        ip_set = set(self._state["ip_list"])
         return phantom.APP_SUCCESS, ip_set
 
     def _handle_test_connectivity(self, param):
@@ -138,31 +135,30 @@ class TordnselConnector(BaseConnector):
         return self.set_status(phantom.APP_SUCCESS)
 
     def _handle_lookup_ip(self, param):
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
         num_exit_nodes = 0
         action_result = self.add_action_result(ActionResult(dict(param)))
-        ips = param['ip']
+        ips = param["ip"]
         ret_val, ip_set = self._init_list(action_result, ips=ips)
         if phantom.is_fail(ret_val):
             return ret_val
-        ips = [x.strip() for x in ips.split(',')]
+        ips = [x.strip() for x in ips.split(",")]
         ips = list(filter(None, ips))
         self.save_progress("")
         for ip in ips:
             data = {}
-            data['ip'] = ip
+            data["ip"] = ip
             if ip in ip_set:
-                data['is_exit_node'] = True
+                data["is_exit_node"] = True
                 num_exit_nodes += 1
             else:
-                data['is_exit_node'] = False
+                data["is_exit_node"] = False
             action_result.add_data(data)
 
-        action_result.update_summary({'num_exit_nodes': num_exit_nodes})
+        action_result.update_summary({"num_exit_nodes": num_exit_nodes})
         return action_result.set_status(phantom.APP_SUCCESS, "Successfully investigated IPs")
 
     def handle_action(self, param):
-
         ret_val = phantom.APP_SUCCESS
 
         # Get the action that we are supposed to execute for this App Run
@@ -170,7 +166,7 @@ class TordnselConnector(BaseConnector):
 
         self.debug_print("action_id", self.get_action_identifier())
 
-        if action_id == 'lookup_ip':
+        if action_id == "lookup_ip":
             ret_val = self._handle_lookup_ip(param)
         elif action_id == "test_connectivity":
             ret_val = self._handle_test_connectivity(param)
@@ -186,8 +182,7 @@ class TordnselConnector(BaseConnector):
         return phantom.APP_SUCCESS
 
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     import argparse
     import sys
 
@@ -197,10 +192,10 @@ if __name__ == '__main__':
 
     argparser = argparse.ArgumentParser()
 
-    argparser.add_argument('input_test_json', help='Input Test JSON file')
-    argparser.add_argument('-u', '--username', help='username', required=False)
-    argparser.add_argument('-p', '--password', help='password', required=False)
-    argparser.add_argument('-v', '--verify', action='store_true', help='verify', required=False, default=False)
+    argparser.add_argument("input_test_json", help="Input Test JSON file")
+    argparser.add_argument("-u", "--username", help="username", required=False)
+    argparser.add_argument("-p", "--password", help="password", required=False)
+    argparser.add_argument("-v", "--verify", action="store_true", help="verify", required=False, default=False)
 
     args = argparser.parse_args()
     session_id = None
@@ -214,26 +209,27 @@ if __name__ == '__main__':
 
         # User specified a username but not a password, so ask
         import getpass
+
         password = getpass.getpass("Password: ")
 
     if username and password:
         try:
             print("Accessing the Login page")
             r = requests.get(login_url, verify=verify, timeout=DEFAULT_TIMEOUT)
-            csrftoken = r.cookies['csrftoken']
+            csrftoken = r.cookies["csrftoken"]
 
             data = dict()
-            data['username'] = username
-            data['password'] = password
-            data['csrfmiddlewaretoken'] = csrftoken
+            data["username"] = username
+            data["password"] = password
+            data["csrfmiddlewaretoken"] = csrftoken
 
             headers = dict()
-            headers['Cookie'] = 'csrftoken=' + csrftoken
-            headers['Referer'] = login_url
+            headers["Cookie"] = "csrftoken=" + csrftoken
+            headers["Referer"] = login_url
 
             print("Logging into Platform to get the session id")
             r2 = requests.post(login_url, verify=verify, data=data, headers=headers, timeout=DEFAULT_TIMEOUT)
-            session_id = r2.cookies['sessionid']
+            session_id = r2.cookies["sessionid"]
         except Exception as e:
             print("Unable to get session id from the platfrom. Error: " + str(e))
             sys.exit(1)
@@ -251,7 +247,7 @@ if __name__ == '__main__':
         connector.print_progress_message = True
 
         if session_id is not None:
-            in_json['user_session_token'] = session_id
+            in_json["user_session_token"] = session_id
 
         ret_val = connector._handle_action(json.dumps(in_json), None)
         print(json.dumps(json.loads(ret_val), indent=4))
