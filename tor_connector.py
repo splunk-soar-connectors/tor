@@ -213,6 +213,7 @@ if __name__ == "__main__":
         password = getpass.getpass("Password: ")
 
     if username and password:
+        login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
             print("Accessing the Login page")
             r = requests.get(login_url, verify=verify, timeout=DEFAULT_TIMEOUT)
