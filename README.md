@@ -1,23 +1,23 @@
 # Tor
 
-Publisher: Splunk \
-Connector Version: 2.0.4 \
-Product Vendor: Tor \
-Product Name: Tor \
+Publisher: Splunk <br>
+Connector Version: 2.0.4 <br>
+Product Vendor: Tor <br>
+Product Name: Tor <br>
 Minimum Product Version: 5.1.0
 
 This app implements investigative actions to query info about the Tor network
 
 ### Supported Actions
 
-[test connectivity](#action-test-connectivity) - Validates the connection to the Tor Project website \
+[test connectivity](#action-test-connectivity) - Validates the connection to the Tor Project website <br>
 [lookup ip](#action-lookup-ip) - Check if IP is a Tor exit node
 
 ## action: 'test connectivity'
 
 Validates the connection to the Tor Project website
 
-Type: **test** \
+Type: **test** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -32,7 +32,7 @@ No Output
 
 Check if IP is a Tor exit node
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 Download a list of current exit nodes to determine if an IP is an exit node. During each action run, if the current list is found to be downloaded over 30 minutes ago, it will download an updated version.
