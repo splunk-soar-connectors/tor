@@ -16,7 +16,7 @@
     "main_module": "tor_connector.py",
     "min_phantom_version": "5.1.0",
     "fips_compliant": true,
-    "python_version": "3",
+    "python_version": "3.9, 3.13",
     "latest_tested_versions": [
         "On local cloud, tested on 1st June 2021"
     ],
@@ -130,5 +130,11 @@
             },
             "versions": "EQ(*)"
         }
-    ]
+    ],
+    "pip39_dependencies": {
+        "wheel": []
+    },
+    "pip313_dependencies": {
+        "wheel": []
+    }
 }
