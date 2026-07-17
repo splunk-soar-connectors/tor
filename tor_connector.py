@@ -1,6 +1,6 @@
 # File: tor_connector.py
 #
-# Copyright (c) 2017-2025 Splunk Inc.
+# Copyright (c) 2017-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -86,9 +86,7 @@ class TordnselConnector(BaseConnector):
                 return action_result.set_status(phantom.APP_ERROR, "Error retrieving recent exit node list"), None
 
             if res.status_code != 200:
-                return action_result.set_status(
-                    phantom.APP_ERROR, f"Error from recent exit node list server: HTTP {res.status_code}"
-                ), None
+                return action_result.set_status(phantom.APP_ERROR, f"Error from recent exit node list server: HTTP {res.status_code}"), None
 
             ret_val, ip_list_past_16_hours = self._parse_exit_list_past_16_hours(action_result, res.text)
             if phantom.is_fail(ret_val):
