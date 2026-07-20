@@ -1,6 +1,6 @@
 # File: tor_connector.py
 #
-# Copyright (c) 2017-2025 Splunk Inc.
+# Copyright (c) 2017-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ class TordnselConnector(BaseConnector):
                     pass
         return phantom.APP_SUCCESS, ip_list
 
-    def _download_save_list(self, action_result, cur_time, ips):
+    def _download_save_list(self, action_result, cur_time):
         self.save_progress("Updating exit node list")
         try:
             r = requests.get("https://check.torproject.org/exit-addresses", timeout=DEFAULT_TIMEOUT)
@@ -69,34 +69,39 @@ class TordnselConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, f"Error from server: {r.text}")
         exit_lits = r.text
         ret_val, ip_list_exit_address = self._parse_exit_list(action_result, exit_lits)
-        ip_list_past_16_hours = []
-        if ips:
-            multiple_ips = ips.split(",")
-            for ip in multiple_ips:
-                try:
-                    res = requests.get(f"https://check.torproject.org/cgi-bin/TorBulkExitList.py?ip={ip.strip()}", timeout=DEFAULT_TIMEOUT)
-                except Exception as e:
-                    return action_result.set_status(phantom.APP_ERROR, "Error retrieving exit node list", e)
-
-                if res.status_code == 200:
-                    ret_val, ip_list_past_16_hour = self._parse_exit_list_past_16_hours(action_result, res.text)
-                    ip_list_past_16_hours = ip_list_past_16_hours + ip_list_past_16_hour
-
         if phantom.is_fail(ret_val):
             return ret_val
 
-        ip_list = list(set(ip_list_exit_address + ip_list_past_16_hours))
+        ip_list = list(set(ip_list_exit_address))
         self._state["ip_list"] = ip_list
         self._state["last_updated"] = cur_time
         return phantom.APP_SUCCESS
 
-    def _init_list(self, action_result, force_update=False, ips=None):
+    def _query_recent_exits(self, action_result, ips):
+        recent_exits = set()
+        for ip in ips:
+            try:
+                res = requests.get(f"https://check.torproject.org/cgi-bin/TorBulkExitList.py?ip={ip}", timeout=DEFAULT_TIMEOUT)
+            except Exception:
+                return action_result.set_status(phantom.APP_ERROR, "Error retrieving recent exit node list"), None
+
+            if res.status_code != 200:
+                return action_result.set_status(phantom.APP_ERROR, f"Error from recent exit node list server: HTTP {res.status_code}"), None
+
+            ret_val, ip_list_past_16_hours = self._parse_exit_list_past_16_hours(action_result, res.text)
+            if phantom.is_fail(ret_val):
+                return ret_val, None
+            recent_exits.update(ip_list_past_16_hours)
+
+        return phantom.APP_SUCCESS, recent_exits
+
+    def _init_list(self, action_result, force_update=False):
         download_list_interval = 30
         cur_time = int(time.time())
         last_updated = self._state.get("last_updated")
         is_list = True if self._state.get("ip_list") else False
         if force_update:
-            ret_val = self._download_save_list(action_result, cur_time, ips)
+            ret_val = self._download_save_list(action_result, cur_time)
             if phantom.is_fail(ret_val):
                 return ret_val, None
         elif not last_updated and is_list:
@@ -104,12 +109,12 @@ class TordnselConnector(BaseConnector):
             self._state["last_updated"] = cur_time
         elif not last_updated and not is_list:
             # Probably first run of the app
-            ret_val = self._download_save_list(action_result, cur_time, ips)
+            ret_val = self._download_save_list(action_result, cur_time)
             if phantom.is_fail(ret_val):
                 return ret_val, None
         elif last_updated and not is_list:
             # They have actively muddled with the app directory at this point
-            ret_val = self._download_save_list(action_result, cur_time, ips)
+            ret_val = self._download_save_list(action_result, cur_time)
             if phantom.is_fail(ret_val):
                 return ret_val, None
         else:
@@ -118,7 +123,7 @@ class TordnselConnector(BaseConnector):
             diff_minutes = diff_seconds / 60
             if diff_minutes > download_list_interval:
                 # Update list
-                ret_val = self._download_save_list(action_result, cur_time, ips)
+                ret_val = self._download_save_list(action_result, cur_time)
                 if phantom.is_fail(ret_val):
                     return ret_val, None
 
@@ -139,11 +144,15 @@ class TordnselConnector(BaseConnector):
         num_exit_nodes = 0
         action_result = self.add_action_result(ActionResult(dict(param)))
         ips = param["ip"]
-        ret_val, ip_set = self._init_list(action_result, ips=ips)
+        ret_val, ip_set = self._init_list(action_result)
         if phantom.is_fail(ret_val):
             return ret_val
         ips = [x.strip() for x in ips.split(",")]
         ips = list(filter(None, ips))
+        ret_val, recent_exits = self._query_recent_exits(action_result, ips)
+        if phantom.is_fail(ret_val):
+            return ret_val
+        ip_set |= recent_exits
         self.save_progress("")
         for ip in ips:
             data = {}

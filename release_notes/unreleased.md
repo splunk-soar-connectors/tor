@@ -1,1 +1,2 @@
 **Unreleased**
+* Ensured Tor IP lookups check recent exit-node data on every action run.
