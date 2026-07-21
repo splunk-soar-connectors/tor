@@ -1,7 +1,7 @@
 # Tor
 
 Publisher: Splunk <br>
-Connector Version: 2.0.6 <br>
+Connector Version: 2.0.7 <br>
 Product Vendor: Tor <br>
 Product Name: Tor <br>
 Minimum Product Version: 5.1.0
