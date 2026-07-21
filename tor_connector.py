@@ -15,9 +15,9 @@
 #
 #
 # Phantom App imports
-import json
-
 # Usage of the consts file is recommended
+import ipaddress
+import json
 import time
 
 import phantom.app as phantom
@@ -44,8 +44,8 @@ class TordnselConnector(BaseConnector):
         for line in exit_list.splitlines():
             if line.startswith("ExitAddress"):
                 try:
-                    ip_list.append(line.split()[1])
-                except:
+                    ip_list.append(str(ipaddress.ip_address(line.split()[1])))
+                except (IndexError, ValueError):
                     pass
         return phantom.APP_SUCCESS, ip_list
 
@@ -54,9 +54,11 @@ class TordnselConnector(BaseConnector):
         for line in exit_list.splitlines():
             if not line.startswith("#"):
                 try:
-                    ip_list.append(line)
-                except:
+                    ip_list.append(str(ipaddress.ip_address(line)))
+                except ValueError:
                     pass
+        if not ip_list and not any(line.startswith("#") for line in exit_list.splitlines()):
+            return action_result.set_status(phantom.APP_ERROR, "Recent exit node list did not contain usable data"), []
         return phantom.APP_SUCCESS, ip_list
 
     def _download_save_list(self, action_result, cur_time):
@@ -71,6 +73,8 @@ class TordnselConnector(BaseConnector):
         ret_val, ip_list_exit_address = self._parse_exit_list(action_result, exit_lits)
         if phantom.is_fail(ret_val):
             return ret_val
+        if "ExitNode" not in exit_lits or "ExitAddress" not in exit_lits or not ip_list_exit_address:
+            return action_result.set_status(phantom.APP_ERROR, "Exit node list did not contain usable data")
 
         ip_list = list(set(ip_list_exit_address))
         self._state["ip_list"] = ip_list

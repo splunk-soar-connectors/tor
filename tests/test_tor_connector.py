@@ -53,13 +53,27 @@ class RecentExitTests(unittest.TestCase):
         self.action_result = ActionResult()
 
     def test_cached_snapshot_excludes_action_specific_recent_exits(self):
-        response = Mock(status_code=200, text="ExitAddress 192.0.2.1 2026-07-17 00:00:00\n")
+        response = Mock(
+            status_code=200,
+            text="ExitNode 0011223344556677889900112233445566778899\nExitAddress 192.0.2.1 2026-07-17 00:00:00\n",
+        )
 
         with patch("tor_connector.requests.get", return_value=response, create=True):
             result = self.connector._download_save_list(self.action_result, 123)
 
         self.assertEqual(result, "success")
         self.assertEqual(self.connector._state["ip_list"], ["192.0.2.1"])
+
+    def test_invalid_exit_address_response_does_not_replace_cached_snapshot(self):
+        self.connector._state = {"ip_list": ["192.0.2.1"], "last_updated": 1}
+        response = Mock(status_code=200, text="<html><body>blocked</body></html>\n")
+
+        with patch("tor_connector.requests.get", return_value=response, create=True):
+            result = self.connector._download_save_list(self.action_result, 123)
+
+        self.assertEqual(result, "error")
+        self.assertEqual(self.action_result.message, "Exit node list did not contain usable data")
+        self.assertEqual(self.connector._state, {"ip_list": ["192.0.2.1"], "last_updated": 1})
 
     def test_recent_exits_are_queried_per_lookup(self):
         response = Mock(status_code=200, text="# comment\n198.51.100.2\n")
@@ -80,6 +94,14 @@ class RecentExitTests(unittest.TestCase):
         self.assertEqual(result, "error")
         self.assertIsNone(recent_exits)
         self.assertEqual(self.action_result.message, "Error from recent exit node list server: HTTP 500")
+
+    def test_recent_exit_list_filters_non_ip_lines(self):
+        result, recent_exits = self.connector._parse_exit_list_past_16_hours(
+            self.action_result, "# list of exits\n198.51.100.2\n<html>blocked</html>\n"
+        )
+
+        self.assertEqual(result, "success")
+        self.assertEqual(recent_exits, ["198.51.100.2"])
 
 
 if __name__ == "__main__":
